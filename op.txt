@@ -1,0 +1,12 @@
+(1)ssh ubuntu@54.202.239.41 -i inve-us-oregon.pem
+(2)cd apache-tomcat-8.5.38/webapps/test
+
+(3)"rm * -rf"
+
+(4)scp -r -i inve-us-oregon.pem dist/* ubuntu@54.202.239.41:~/apache-tomcat-8.5.38/webapps/test/       (windows端桌面运行)
+
+
+官网地址：http://www.fortunechain.one/test
+
+
+接口地址：http://apidoc.mcbn.cc/index.php/Home/item/show?item_id=67

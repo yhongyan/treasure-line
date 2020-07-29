@@ -1,0 +1,11 @@
+@charset "utf-8";
+/* CSS Document */
+.section-header p{ text-align:left;}
+.sc_bt{ font-size:18px; padding-top:20px;}
+.tz i{ font-size:32px; margin-right:20px;}
+.tz .color{color:#f07e1b }
+.tz h4{ font-size:16px;}
+.tz .sub-item-box{ margin-bottom:20px; padding-left:12%;}
+.contact .contact-info{ float:left; padding-right:20px;}.contact .contact-info a{ color:#546E7A;}
+.contact-info a:hover{ color:#f07e1b;}
+.contact-info i{ font-size:32px;}

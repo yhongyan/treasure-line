@@ -1,0 +1,1896 @@
+<template>
+	<div class="center">
+		<div class="row">
+			<div class="left col-lg-5 col-md-5 col-sm-12">
+				<div class="info">
+					<div class="row">
+						<div class="info-left col-lg-5 col-md-6 col-sm-12">
+							<img style="width: 72px;height:72px;border-radius:50%" :src="head_flie" alt @click="optHead()" />
+							<!-- <img
+                v-if="orModofySuccess"
+                style="width: 72px;height:72px;border-radius:50%"
+                :src="imgUrl+ modifyImg"
+                alt
+                @click="optHead()"
+              />
+              <img
+                v-if="define_imageUrl"
+                style="width: 72px;height:72px;border-radius:50%"
+                :src="define_imageUrl"
+                alt
+              />-->
+							<!-- <el-upload
+                style="display:inline-block"
+                class="avatar-uploader"
+                :action="depUrl + 'userinfo/upload'"
+                :show-file-list="false"
+                :before-upload="beforeUpload"
+                :on-success="uploadSuccess"
+                :data="transferData"
+                :on-error="uploadError"
+              >
+              <img :src="head_flie" alt=""  style="width: 72px;height:72px;border-radius:50%">
+              </el-upload>-->
+							<p class="userID">{{info.show_id}}</p>
+							<span class="kyc" @click="routerPush('/kyc1')">
+                <img v-if="info.kyc1 == 1" src="../assets/images/kyc1.png" alt />
+                <img v-else src="../assets/images/kyc2.png" alt />
+                <span>KYC1认证</span>
+							</span>
+							<span class="kyc" @click="routerPush('/kyc2')">
+                <img v-if="info.kyc2 == 1" src="../assets/images/kyc1.png" alt />
+                <img v-else src="../assets/images/kyc2.png" alt />
+                <span>KYC2认证</span>
+							</span>
+						</div>
+						<div class="info-right col-lg-7 col-md-6 col-sm-12">
+							<div class="regist_phone">
+								<span>注册手机号：</span>
+								<span>{{mobile}}</span>
+							</div>
+							<div class="zhiyuan" v-if="info.is_zhiyuanzhe == 1">
+								<!-- is_zhiyuanzhe:1是志愿者 -->
+								<span>{{volunteer_level}}</span>
+								<span>星志愿者：</span>
+								<el-rate style="display:inline-block" v-model="volunteer_level" disabled :max="valmax" text-color="#ff9900"></el-rate>
+							</div>
+							<div v-else class="zhiyuan1">
+								<el-button class="button_volunteer" size="small" type="primary" plain @click="routerPush('/volunteerApply')">申请志愿者</el-button>
+							</div>
+							<el-button class="apply_honggu" type="primary" size="small" @click="friendHonggu">申请领取好友助力{{info.friendHongGu}}红股</el-button>
+							<div class="modify_sign">
+								<el-button type="primary" size="small" style="width: 100px;margin-left: 0;" @click="modifyPwd">修改密码</el-button>
+								<el-button type="primary" size="small" style="margin-left: 0;width:105px" @click="qiandao" v-if="info.qiandaoStatus==2">签到送10红股</el-button>
+								<el-button type="info" size="small" v-else style="margin-left: 0;width:105px">已签到</el-button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="honggu1">
+					<div class="honggu1_flex">
+						<div class="left">
+							<p>TITT数量</p>
+							<p>{{info.titt}}</p>
+							<el-button size="small" @click="$router.push('/upEosUser')" v-if="userName ==''|| userName==mobile">绑定eos账号</el-button>
+
+							<!--<el-button size="small" type="text" v-if="Eos!=''&& Eos!= null&& Eos!= undefined" class="user_eos">{{Eos}}</el-button>-->
+							<!--<el-button size="small" @click="$router.push('/upEosUser')" v-if="loginLabel == 'phoneLogin' || loginLabel ==null ">绑定eos账号</el-button>-->
+							<el-button size="small" type="text" class="user_eos" v-else>{{Eos}}</el-button>
+						</div>
+						<div class="middle1">
+							<p>已解锁红股数量</p>
+							<p>{{info.hongguyijiesuo}}</p>
+							<el-button size="small" @click="routerPush('/hongguChange')">兑换TITT</el-button>
+							<!-- <el-button size="small" @click="routerPush('/hongguSend')">红股转赠</el-button> -->
+							<el-button size="small" @click="hgzz()" class="honggzz">红股转赠</el-button>
+						</div>
+						<div class="right">
+							<p>未解锁红股数量</p>
+							<p>{{info.hongguweijiesuo}}</p>
+							<el-button size="small" @click="routerPush('/hongguCode')">红股兑换码</el-button>
+						</div>
+					</div>
+
+					<div class="hg_bottom">
+						<router-link to="/unlockList">已解锁红股列表>></router-link>
+					</div>
+				</div>
+				<div class="award-record" style="overflow: hidden">
+					<h5>TITT总量：{{info.titt}}TITT</h5>
+					<el-row class="award-title">
+						<el-col :span="10">日期</el-col>
+						<el-col :span="7">持仓TITT数量</el-col>
+						<el-col :span="7">持仓交易明细</el-col>
+					</el-row>
+					<el-row class="award-item" style="line-height: 40px;" v-for="(item,index) in chicangList" :key="index">
+						<el-col :span="10">{{item.createdtime}}</el-col>
+						<el-col :span="7" style="color: #f07e1b;">{{item.tittnum}}</el-col>
+						<el-col :span="7" style="color: #f07e1b;">
+							<el-button type="text" @click="$router.push({ path:'/chicangDetail',query:{ id:item.id } })">详情</el-button>
+						</el-col>
+					</el-row>
+					<div class="moreDeal" @click="routerPush('/chicangList')">更多持仓交易明细>></div>
+					<!-- <el-button type="text" style="float: right;margin-right: 30px;" @click="routerPush('/chicangList')">更多持仓交易明细>></el-button> -->
+				</div>
+				<div class="invite">
+					<h4 class="myfriend">
+            我的人脉圈
+            <router-link to="/friendsList">好友列表>></router-link>
+          </h4>
+					<el-row class="row">
+						<el-col :span="8" class="friend">
+							<span>志愿者获得奖励</span>
+							<span>{{num4}}</span>
+						</el-col>
+						<el-col :span="8" class="friend">
+							<span>直接邀请志愿者数量</span>
+							<span>{{num2}}</span>
+						</el-col>
+						<el-col :span="8" class="friend">
+							<span>下线志愿者数量</span>
+							<span>{{num3}}</span>
+						</el-col>
+					</el-row>
+					<!-- <router-link to="/friendsList" class="myfriend">好友列表>></router-link> -->
+					<div class="clearfix"></div>
+				</div>
+				<div class="invite">
+					<el-row class="row">
+						<el-col :span="8" class="friend">
+							<span>获得邀请奖励</span>
+							<span>{{num1}}</span>
+						</el-col>
+						<el-col :span="8" class="friend">
+							<span>直接好友数量</span>
+							<span>{{num5}}</span>
+						</el-col>
+						<el-col :span="8" class="friend">
+							<span>好友邀请的好友数量</span>
+							<span>{{num6}}</span>
+						</el-col>
+					</el-row>
+					<el-row class="row" style="margin-top:20px">
+						<el-col :span="8" class="friend">
+							<span>团队总量</span>
+							<span>{{info.askpeople}}</span>
+						</el-col>
+						<el-col :span="8" class="friend">
+							<span>个人贡献值</span>
+							<span>{{info.countasknum}}</span>
+						</el-col>
+						<el-col :span="8" class="friend">
+							<span>团队贡献值</span>
+							<span>{{info.teamContribute}}</span>
+						</el-col>
+					</el-row>
+					<el-row class="invite-code" style="margin-top: 30px;">
+						<el-col :span="6">我的邀请码</el-col>
+						<el-col :span="14">{{copyValue}}</el-col>
+						<el-col :span="4">
+							<el-button size="small" type="primary" class="copy1" plain style="padding: 6px 12px;" :data-clipboard-text="copyValue" @click="copyVisiteCode(1)">复制</el-button>
+						</el-col>
+					</el-row>
+					<el-row class="invite-code">
+						<el-col :span="6">我的邀请链接</el-col>
+						<el-col v-show="orShowcode" :span="14" style="word-wrap: break-word">http://www.fortunechain.org/#/registerTest?i={{copyValue}}</el-col>
+						<el-col :span="4">
+							<el-button v-show="orShowcode" size="small" type="primary" class="copy2" plain style="padding: 6px 12px;" :data-clipboard-text="'http://www.fortunechain.org/#/registerTest?i=' + copyValue" @click="copyVisiteCode(2)">复制</el-button>
+						</el-col>
+					</el-row>
+					<el-row class="invite-code">
+						<el-col :span="6" style="opacity: 0">占位</el-col>
+						<el-col :span="6">
+							<el-button size="small" v-if="orShowcode" @click="lookVisitLink()">查看邀请链接二维码</el-button>
+							<el-button size="small" type="primary" plain v-if="orShowcode1" @click="goLogin()">登录查看链接二维码</el-button>
+						</el-col>
+					</el-row>
+				</div>
+				<div class="award-record">
+					<h5>获得奖励记录</h5>
+					<el-row class="award-title">
+						<el-col :span="10">时间</el-col>
+						<el-col :span="7">奖励来源</el-col>
+						<el-col :span="7">红股奖励数额</el-col>
+					</el-row>
+					<el-row class="award-item" v-for="(item,index) in awardList" :key="index">
+						<el-col :span="10">{{item.createtime}}</el-col>
+						<el-col :span="7" style="color: #f07e1b;">{{item.laiyuan}}</el-col>
+						<el-col :span="7" style="color: #f07e1b;">{{item.titt}}</el-col>
+					</el-row>
+					<div class="block">
+						<el-pagination :page-size="10" :pager-count="5" layout="prev, pager, next" :total="recordTotal" @current-change="recordCurrentChange"></el-pagination>
+					</div>
+				</div>
+				<div class="award-news">
+					<h5>财富商学院</h5>
+					<div class="news-item">
+						<p v-for="(item,index) in newsList" :key="index" @click="$router.push({path:'/awardDetail',query:{data:JSON.stringify(item)}})">{{index+1}}、{{item.title}}</p>
+					</div>
+					<div class="block">
+						<el-pagination :page-size="4" :pager-count="5" layout="prev, pager, next" :total="collegeTotal" @current-change="collegeCurrentChange"></el-pagination>
+					</div>
+				</div>
+				<!--                <div class="rules">-->
+				<!--                    <h5>奖励领取活动细则</h5>-->
+				<!--                    <div class="item">-->
+				<!--                        <p>1、活动期间，注册新账号即可获得注册奖励，后续将根据实际情况进行调整。</p>-->
+				<!--                        <p>2、好友通过你的邀请码、专属邀请链接、专属邀请二维码注册成功后，你的账户即刻获得邀请奖励；三种方式中的任意方式均可。</p>-->
+				<!--                        <p>3、通证保留随时对这侧领取TITT、邀请奖励TITT活动规则进行调整的权力，但是对你推荐的好友数量没有限制。</p>-->
+				<!--                        <p>4、通证会严查重复的或者虚假的账号，一经发现，将不会对注册及邀请进行奖励。</p>-->
+				<!--                    </div>-->
+				<!--                </div>-->
+			</div>
+			<div class="right col-lg-7 col-md-7 col-sm-12">
+				<div class="bledge-container">
+					<h4>会员卡信息</h4>
+					<div class="pledge">
+						<div class="pledge-top clear">
+							<!--<div class="all-pledge">-->
+							<!--<p>总抵押数量</p>-->
+							<!--<span>{{info.diyaNum}}</span>-->
+							<!--</div>-->
+							<h5>
+                会员卡种类
+                <span style="font-size: 12px">（请点击会员卡的卡面，获取会员卡申请信息）</span>
+              </h5>
+							<div class="vipKinds">
+								<img v-for="item in cardList" :src="item.wenjian" @click="addJinka(item.classify,item.id)" alt />
+							</div>
+							<!--<h5>可参加抵押活动</h5>-->
+							<!--<p style="margin: 20px 0;">个人抵押</p>-->
+							<!--<el-button v-for="(item,index) in personList" :key="item.createtime" type="primary" style="margin:0px 30px 20px 0" size="small" @click="goDiya(item)">{{item.time1 | timeTrans}}{{item.title}}【<span v-if="item.type==2">企业抵押</span><span v-else>个人抵押</span>】</el-button>-->
+							<!--<p style="margin: 20px 0;">企业抵押</p>-->
+							<!--<el-button v-for="(item,index) in companyList" :key="item.createtime" type="primary" style="margin:0px 30px 20px 0" size="small" @click="goDiya(item)">{{item.time1 | timeTrans}}{{item.title}}【<span v-if="item.type==2">企业抵押</span><span v-else>个人抵押</span>】</el-button>-->
+							<p style="border-top: 1px solid #ddd;padding: 15px 0;color: #000;">
+								已持有会员卡抵押总量
+								<span style="float: right;">{{diyaTotal}}TITT</span>
+							</p>
+							<p style="border-top: 1px solid #ddd;border-bottom: 1px solid #ddd;padding: 15px 0;color: #000;">
+								已持有会员卡数量
+								<span style="float: right;">{{total3}}张</span>
+							</p>
+							<p style="border-top: 1px solid #ddd;border-bottom: 1px solid #ddd;padding: 15px 0;color: #000;">
+								抵押红股总量
+								<span style="float: right;">{{total4}}</span>
+							</p>
+							<h5>已持有会员卡</h5>
+							<div class="vipList">
+								<img style="width: 200px;height: 120px;cursor: pointer;" :src="item.wenjian" @click="getVipDetail(item)" v-for="(item,index) in doneHuodong" :key="index" alt />
+							</div>
+							<div class="block">
+								<el-pagination @current-change="handleCurrentChange" :current-page="page3" layout="total, prev, pager, next, jumper" :total="total3"></el-pagination>
+							</div>
+						</div>
+						<!--<div class="pledge-item"  v-for="(item,index) in doneHuodong" :key="index">-->
+						<!--<h5>财富链首期抵押分红活动</h5>-->
+						<!--<div class="bledge-content row">-->
+						<!--<div class="item-left col-lg-4 col-md-4 col-sm-12">-->
+						<!--<div class="fang">-->
+						<!--<p>预期分红</p>-->
+						<!--<span>{{item.fenhong}}</span>-->
+						<!--</div>-->
+						<!--<p class="time">到期日：{{item.endtime}}</p>-->
+						<!--</div>-->
+						<!--<div class="item-right col-lg-8 col-md-8 col-sm-12">-->
+						<!--<el-row class="right-row">-->
+						<!--<el-col :span="7">已抵押TITT数量</el-col>-->
+						<!--<el-col :span="17">{{item.num}}（个）</el-col>-->
+						<!--</el-row>-->
+						<!--<el-row class="right-row">-->
+						<!--<el-col :span="7">抵押时间周期</el-col>-->
+						<!--<el-col :span="17" style="padding-left: 5px;">{{item.diyatimezhouqi}}</el-col>-->
+						<!--</el-row>-->
+						<!--<el-row class="right-row">-->
+						<!--<el-col :span="7">解锁条件</el-col>-->
+						<!--<el-col :span="17" style="padding-left: 5px;">{{item.jiesuotiaojian}}</el-col>-->
+						<!--</el-row>-->
+						<!--&lt;!&ndash;                                    <el-row class="right-row">&ndash;&gt;-->
+						<!--&lt;!&ndash;                                        <el-col :span="7">抵押分红时间</el-col>&ndash;&gt;-->
+						<!--&lt;!&ndash;                                        <el-col :span="17" style="padding-left: 5px;">{{diyafenhongshijian}}</el-col>&ndash;&gt;-->
+						<!--&lt;!&ndash;                                    </el-row>&ndash;&gt;-->
+						<!--<el-row class="right-row">-->
+						<!--<el-col :span="7">预期分红数量</el-col>-->
+						<!--<el-col :span="17" style="padding-left: 5px;">{{item.yuqifenhongliang}}（个）</el-col>-->
+						<!--</el-row>-->
+						<!--<el-row class="right-row">-->
+						<!--<el-col :span="7">抵押分红解锁</el-col>-->
+						<!--<el-col :span="17" style="padding-left: 5px;">{{item.diyafenhongjiesuo}}</el-col>-->
+						<!--</el-row>-->
+						<!--<el-row class="right-row">-->
+						<!--<el-col :span="7">活动状态</el-col>-->
+						<!--<el-col :span="17" style="padding-left: 5px;">-->
+						<!--<span v-if="item.endStatus == 2">已结束</span>-->
+						<!--<span v-else>未结束</span>-->
+						<!--<el-button type="text" v-if="item.end_display == 1" style="color:#f07e1b;margin-left:10px" @click="applyOver(item.pkid)">申请终止</el-button>-->
+						<!--</el-col>-->
+						<!--</el-row>-->
+						<!--</div>-->
+						<!--</div>-->
+						<!--</div>-->
+						<!--<div class="block">-->
+						<!--<el-pagination-->
+						<!--@current-change="handleCurrentChange"-->
+						<!--:current-page="page3"-->
+						<!--layout="total, prev, pager, next, jumper"-->
+						<!--:total="total3">-->
+						<!--</el-pagination>-->
+						<!--</div>-->
+					</div>
+				</div>
+			</div>
+		</div>
+		<el-drawer :visible.sync="drawer" direction="rtl" :size="drawerSize">
+			<div style="text-align: center;width: 350px;">
+				<img style="width: 300px;height: 180px;" :src="cardDetail.wenjian" alt />
+			</div>
+			<ul style="margin: 30px 0;color: #000;">
+				<li style="padding: 10px 10px;border-top: 1px solid #ddd;">
+					<i class="iconfont icon-huiyuan-"></i>
+					<span style="display: inline-block;margin: 0 0 0 10px;">会员卡名称：</span>
+					<span style="float: right;">{{cardDetail.cardname}}</span>
+				</li>
+				<li style="padding: 10px 10px;border-top: 1px solid #ddd;">
+					<i class="iconfont icon-diya-"></i>
+					<span style="display: inline-block;margin: 0 0 0 10px;">抵押数量：</span>
+					<span style="float: right;">{{cardDetail.titt_num}}</span>
+				</li>
+				<li style="padding: 10px 10px;border-top: 1px solid #ddd;">
+					<i class="iconfont icon-youxiaoqixian"></i>
+					<span style="display: inline-block;margin: 0 0 0 10px;">有效期限：</span>
+					<span style="float: right;">{{cardDetail.createtime}} - {{cardDetail.endtime}}</span>
+				</li>
+				<li style="padding: 10px 10px;border-top: 1px solid #ddd;border-bottom: 1px solid #ddd;">
+					<i class="iconfont icon-daoqifanhuanbenjin"></i>
+					<span style="display: inline-block;margin: 0 0 0 10px;">到期后返还：</span>
+					<span style="float: right;">{{cardDetail.giveback}}</span>
+				</li>
+			</ul>
+		</el-drawer>
+		<el-dialog title width="350px" :visible.sync="dialogJinka">
+			<div style="text-align: center">
+				<!--<img style="width: 300px;" src="../assets/images/huodejinka.gif" alt />-->
+				<!--<img style="width: 300px;" src="../assets/images/tiyanCard.png" alt />-->
+				<div class="tiyanCard">
+					<span>恭喜获得</span>
+					<span>体验卡</span>
+					<span>一张</span>
+				</div>
+			</div>
+		</el-dialog>
+		<el-dialog title width="280px" top="200px" :visible.sync="jingqinqidai">
+			<div style="text-align: center">
+				<p>本卡暂未上线，</p>
+				<p>请关注公告本卡上线日期</p>
+			</div>
+		</el-dialog>
+		<el-dialog title width="290px" :visible.sync="dialogVisible" @open="handleOpen">
+			<div style="border: 3px solid rgb(20,152,255);padding:10px;border-radius:6px">
+				<div style="text-align: center">
+					<p>财富链，助力中国科技引领世界！</p>
+					<p>我的专属邀请码</p>
+					<p style="color: #333">{{copyValue}}</p>
+				</div>
+				<div style="width: 150px;margin:10px auto 0">
+					<div id="qrcode" ref="qrcode"></div>
+				</div>
+				<p style="text-align: center;margin: 10px 0;">扫码注册</p>
+				<div style="text-align: center">
+					<img style="width: 30px;height: 30px;" src="../assets/images/logo.png" alt />
+					<span style="color: #f07e1b;font-size: 16px;font-weight: 700">财富链</span>
+				</div>
+			</div>
+		</el-dialog>
+		<el-dialog :visible.sync="dialogPassword" width="300px" @close="handleClose">
+			<h4 style="font-size: 18px;text-align: center;margin: -20px 0 20px">修改密码</h4>
+			<el-form :model="ruleForm" :rules="rules" ref="ruleForm" size="medium">
+				<el-form-item prop="old_password">
+					<el-row>
+						<el-col :span="7" style="text-align: right;padding-right: 8px;">
+							<span>当前密码:</span>
+						</el-col>
+						<el-col :span="17">
+							<el-input type="password" v-model.trim="ruleForm.old_password" size="large" placeholder="请输入当前密码"></el-input>
+						</el-col>
+					</el-row>
+				</el-form-item>
+				<el-form-item prop="new_password" style="margin-top: 20px;">
+					<el-row>
+						<el-col :span="7" style="text-align: right;padding-right: 8px;">
+							<span>新密码:</span>
+						</el-col>
+						<el-col :span="17">
+							<el-input type="password" v-model.trim="ruleForm.new_password" size="large" placeholder="请输入新密码"></el-input>
+						</el-col>
+					</el-row>
+				</el-form-item>
+				<el-form-item prop="confirm_password" style="margin-top: 20px;">
+					<el-row>
+						<el-col :span="7" style="text-align: right;padding-right: 8px;">
+							<span>确认密码:</span>
+						</el-col>
+						<el-col :span="17">
+							<el-input type="password" v-model.trim="ruleForm.confirm_password" size="large" placeholder="请确认密码"></el-input>
+						</el-col>
+					</el-row>
+				</el-form-item>
+				<div style="text-align: center;">
+					<el-button style="width: 80px;height: 36px;background: #f1f1f3;border: none;" @click="dialogPassword=false">取消</el-button>
+					<el-button type="primary" style="width: 80px;height: 36px;" @click="changePwd('ruleForm')">确定</el-button>
+				</div>
+			</el-form>
+		</el-dialog>
+		<!-- 头像弹框 -->
+		<el-dialog title :visible.sync="headDialogVisible" width="300px" center class="headDialog">
+			<el-button type="primary" @click="showDefalut()" style="display:inline-block">修改默认头像</el-button>
+			<!-- <el-button type="primary" @click="selfDefine()" style="margin-left:20px">自定义头像</el-button> -->
+			<el-upload style="display:inline-block" class="avatar-uploader" :action="depUrl + 'userinfo/upload'" :show-file-list="false" :before-upload="beforeUpload" :on-success="uploadSuccess" :data="transferData" :on-error="uploadError">
+				<el-button size type="primary">自定义头像</el-button>
+			</el-upload>
+		</el-dialog>
+		<el-dialog title="请选择默认头像" :visible.sync="defalue_head_dialog" width="300px" center class="headDialog">
+			<ul class>
+				<li v-for="item in default_head" :key="item" style="display:inline-block;margin:10px 10px 0 0">
+					<img :src="imgUrl+item" alt @click="modifyDefault(item)" style="width:50px;height:50px;border-radius:50%" />
+				</li>
+			</ul>
+		</el-dialog>
+		<div class="orContinus zhezhao" v-if="orContinusZhezhao">
+			<div class="popup" v-if="moreCard">
+				<span class="cancle" @click="cardCancle">x</span>
+				<div class="or_continus_title">
+					<span>提示：您有</span>
+					<span>{{deallinecardNum}}</span>
+					<span>张会员卡还有</span>
+					<span>{{deallineday}}</span>
+					<span>天到期，是否选择继续持有,不选择默认为持有</span>
+				</div>
+				<div class="continus_opt">
+					<span class="look_detail" @click="lookCardDetail">查看详情</span>
+					<span @click="" class="continus_have">停止持有</span>
+				</div>
+			</div>
+
+			<div class="popup" v-if="oneCard">
+				<span class="cancle" @click="cardCancle">x</span>
+				<div class="or_continus_title">
+					<span>提示：您的</span>
+					<span>{{cardType}}</span>
+					<span>还有</span>
+					<span>{{deallineday}}</span>
+					<span>天到期，是否选择继续持有,不选择默认为持有</span>
+				</div>
+				<div class="continus_opt">
+					<span class="look_detail" @click="continusHave">继续持有</span>
+					<span @click="stopHaveSingleCard" class="continus_have">停止持有</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import Clipboard from "clipboard";
+	import QRCode from "qrcodejs2";
+	export default {
+		name: "person-center",
+		data() {
+			return {
+				orContinusZhezhao: false,
+				//				orContinusPopup: true,
+				moreCard: false,
+				oneCard: false,
+				cardType: "",
+				deallineday: "",
+
+				deallinecardNum: "",
+				headDialogVisible: false,
+				defalue_head_dialog: false,
+				default_head: {},
+				depUrl: "http://admin.clb528.cn/index/",
+				imgUrl: "http://admin.clb528.cn/",
+				imageUrla: "",
+				modifyImg: "",
+				//    noModify: true,
+				//				orModofySuccess: false,
+				//				define_imageUrl: "",
+				head_flie: "",
+				transferData: {
+					token: sessionStorage.getItem("token"),
+					head_file: ""
+				},
+				File: "",
+				rules: {
+					old_password: [{
+							required: true,
+							message: "请输入当前密码",
+							trigger: "blur"
+						},
+						{
+							min: 8,
+							max: 20,
+							message: "最少8位",
+							trigger: "blur"
+						}
+					],
+					new_password: [{
+							required: true,
+							message: "请输入新密码",
+							trigger: "blur"
+						},
+						{
+							min: 8,
+							max: 20,
+							message: "最少8位",
+							trigger: "blur"
+						}
+					],
+					confirm_password: [{
+							required: true,
+							message: "请输入确认密码",
+							trigger: "blur"
+						},
+						{
+							min: 8,
+							max: 20,
+							message: "最少8位",
+							trigger: "blur"
+						}
+					]
+				},
+				ruleForm: {},
+				awardList: [],
+				userName: "",
+				titt: "",
+				num1: 0,
+				num2: 0,
+				num3: 0,
+				num4: 0,
+				num5: 0,
+				num6: 0,
+				newsList: [],
+				copyValue: "",
+				copyTuiguangma: "",
+				page1: 1,
+				page2: 1,
+				page3: 1,
+				recordTotal: 0,
+				collegeTotal: 0,
+				nums: {},
+				diyaTotal: 0,
+				personList: [],
+				companyList: [],
+				doneHuodong: [],
+				total3: 0,
+				total4: 0,
+				chicangList: [],
+				hongguyijiesuo: "",
+				hongguweijiesuo: "",
+				info: {},
+				dialogVisible: false,
+				code: true,
+				dialogPassword: false,
+				drawer: false,
+				drawerSize: "360",
+				cardDetail: {},
+				dialogJinka: false,
+				jingqinqidai: false,
+				cardList: [],
+				mobile: "",
+				Eos: "", //EOS账号
+				volunteer_level: "", // 志愿者等级
+				valmax: 6,
+				orShowcode: false,
+				orShowcode1: true,
+				user_info: {}, //用户信息
+				orshow_eos: false,
+				deallineNum: "",
+				loginLabel: "",
+				cardId: ''
+			};
+		},
+		mounted() {
+			this.getInfo();
+			this.getUserDetail();
+			this.showDefalutImg();
+			this.getNewsList();
+			this.getAwardList();
+			this.getNums();
+			this.getDiya();
+			this.isbindEos();
+			this.getVipCard();
+			this.getCardList();
+			// this.getDoneDiya();
+			this.getChicang();
+			this.checkLook();
+			var str = JSON.parse(sessionStorage.getItem("user")); //获取邀请码
+			this.copyValue = str.yaoqingma;
+			this.copyTuiguangma = str.tuiguangma;
+			this.userName = str.username;
+			this.mobile = str.mobile;
+			this.titt = str.titt;
+			this.Eos = str.username;
+			this.hongguyijiesuo = str.hongguyijiesuo;
+			this.hongguweijiesuo = str.hongguweijiesuo;
+			//			this.getCurrentDate()
+			this.checkDateline();
+		},
+		methods: {
+			lookCardDetail() {
+				this.orContinusZhezhao = false;
+				this.moreCard = false;
+				this.oneCard = false;
+				this.$router.push({
+					path: "/cardDetail",
+					query: {
+						num: this.deallineNum
+					}
+				});
+			},
+			stopHaveSingleCard() {
+				this.orContinusZhezhao = false;
+				this.moreCard = false;
+				this.oneCard = false;
+				var that = this
+				this.$axios
+					.post("card/giveupCard", {
+						token: sessionStorage.getItem("token"),
+						id: that.cardId,
+						num: ''
+					})
+					.then(res => {
+						console.log(res)
+						if(res.data.sta == 200) {
+							this.$message.success(res.data.msg);
+						} else if(res.data.sta == 401) {
+							this.checkLogin();
+						}
+					});
+			},
+//			stopHaveMoreCard() {
+////				this.orContinusZhezhao = false;
+////				this.moreCard = false;
+////				this.oneCard = false;
+////				var that = this
+////				this.$axios
+////					.post("card/giveupCard", {
+////						token: sessionStorage.getItem("token"),
+////						id: '',
+////						num: that.deallineNum
+////					})
+////					.then(res => {
+////						console.log(res)
+////						if(res.data.sta == 200) {
+////							this.$message.success(res.data.msg);
+////						} else if(res.data.sta == 401) {
+////							this.checkLogin();
+////						}
+////					});
+//			},
+			//  一张会员卡
+			continusHave() {
+				this.orContinusZhezhao = false;
+				this.moreCard = false;
+				this.oneCard = false;
+				var that = this
+				this.$axios
+					.post("card/renewCard", {
+						token: sessionStorage.getItem("token"),
+						id: that.cardId,
+						num: ''
+					})
+					.then(res => {
+						console.log(res)
+						if(res.data.sta == 200) {
+							this.$message.success(res.data.msg);
+						} else if(res.data.sta == 401) {
+							this.checkLogin();
+						}
+					});
+			},
+			cardCancle() {
+				this.orContinusZhezhao = false;
+				this.moreCard = false;
+				this.oneCard = false;
+			},
+			handleAvatarSuccess(res, file) {
+				this.imageUrla = URL.createObjectURL(file.raw);
+			},
+			optHead() {
+				if(sessionStorage.getItem("token")) {
+					this.headDialogVisible = true;
+				} else {
+					this.$message.error("请先登录");
+					this.$router.push("/login");
+				}
+			},
+			showDefalut() {
+				this.headDialogVisible = false;
+				this.defalue_head_dialog = true;
+			},
+			modifyPwd() {
+				if(!this.checkLogin()) {
+					return false;
+				} else {
+					this.dialogPassword = true;
+				}
+			},
+
+			showDefalutImg() {
+				this.$axios.post("userinfo/defaultimg").then(res => {
+					if(res.data.sta == 200) {
+						var value = [];
+						for(var i in res.data.data) {
+							value.push(res.data.data[i]);
+						}
+						this.head_flie = "http://admin.clb528.cn/" + value[0];
+						this.default_head = value;
+					}
+				});
+			},
+			modifyDefault(val) {
+				this.$axios
+					.post("userinfo/editdefaultimg", {
+						token: sessionStorage.getItem("token"),
+						head_file: val
+					})
+					.then(res => {
+						if(res.data.sta == 200) {
+							this.defalue_head_dialog = false;
+							this.getInfo();
+							//							this.showDefalutImg()
+						} else if(res.data.sta == 401) {
+							this.checkLogin();
+						}
+					});
+			},
+			selfDefine() {
+				this.headDialogVisible = false;
+			},
+			beforeUpload(file) {
+				this.headDialogVisible = false;
+				this.transferData.head_file = file;
+			},
+			uploadSuccess(res, file) {
+				//console.log(res, file);
+				this.headDialogVisible = false;
+				this.getInfo();
+			},
+			uploadError() {
+				this.headDialogVisible = false;
+			},
+			isbindEos() {
+				this.$axios
+					.post("userinfo/isbindeos", {
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						//console.log(res.data);
+						if(res.data.sta == 200) {
+							// this.defalue_head_dialog = false;
+							// this.modifyImg = val;
+							// this.$router.push("/hongguSend");
+							this.orshow_eos = true;
+						} else {
+							// this.$message.error("请绑定手机号");
+						}
+					});
+			},
+			hgzz() {
+				var that = this;
+				that.$axios
+					.post("userinfo/isbindphone", {
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						//console.log(res.data);
+						if(res.data.sta == 200) {
+							// this.defalue_head_dialog = false;
+							// this.modifyImg = val;
+							// this.$router.push("/hongguSend");
+							that.$router.push({
+								path: "/hongguSend",
+								query: {
+									orVolunteers: that.info.is_zhiyuanzhe,
+									volunteersLevel: that.volunteer_level,
+									mobile: that.mobile
+								}
+							});
+						} else {
+							that.$message.error("请绑定手机号");
+						}
+					});
+			},
+			addJinka(type, id) {
+				if(type == 1) {
+					this.$axios
+						.post("card/giveCard", {
+							token: sessionStorage.getItem("token"),
+							id: id
+						})
+						.then(res => {
+							if(res.data.sta == 200) {
+								this.dialogJinka = true;
+								this.getVipCard();
+							} else if(res.data.sta == 401) {
+								sessionStorage.removeItem("user");
+								sessionStorage.removeItem("token");
+								return;
+							} else {
+								this.$message({
+									showClose: true,
+									message: res.data.msg,
+									type: "error"
+								});
+							}
+						});
+				} else {
+					this.$router.push({
+						path: "/vipApply",
+						query: {
+							id: id
+						}
+					});
+				}
+			},
+			handleClose() {
+				this.ruleForm = {};
+			},
+			changePwd(formName) {
+				this.$refs[formName].validate(valid => {
+					if(valid) {
+						var params = {
+							token: sessionStorage.getItem("token"),
+							password: this.ruleForm.old_password,
+							newpassword: this.ruleForm.new_password,
+							rnewpassword: this.ruleForm.confirm_password
+						};
+						this.$axios.post("login/updatePassword", params).then(res => {
+							if(res.data.sta != 200) {
+								this.$message({
+									showClose: true,
+									message: res.data.msg,
+									type: "error"
+								});
+							} else {
+								this.$message({
+									showClose: true,
+									message: "密码修改成功！",
+									type: "success"
+								});
+								this.dialogPassword = false;
+							}
+						});
+					} else {
+						this.$message({
+							showClose: true,
+							message: "请输入正确内容",
+							type: "error"
+						});
+						return false;
+					}
+				});
+			},
+			qrcode() {
+				let qrcode = new QRCode("qrcode", {
+					width: 150, // 设置宽度，单位像素
+					height: 150, // 设置高度，单位像素
+					text: "http://www.fortunechain.org/#/registerTest?i=" + this.copyValue
+				});
+				this.code = false;
+			},
+			handleOpen() {
+				if(this.code) {
+					this.$nextTick(() => {
+						this.qrcode();
+					});
+				}
+			},
+			getInfo() {
+				this.$axios
+					.get("user/userinfo", {
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							sessionStorage.removeItem("user");
+							sessionStorage.removeItem("token");
+							this.info.qiandaoStatus = 2;
+							return;
+						}
+						this.info = res.data;
+						this.head_flie = res.data.head_file;
+					});
+			},
+			//个人信息 （在线文档）
+			getUserDetail() {
+				this.$axios
+					.get("userinfo/getUserDetail", {
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							sessionStorage.removeItem("user");
+							sessionStorage.removeItem("token");
+							return;
+						}
+						this.volunteer_level = res.data.data.volunteer_level;
+						this.user_info = res.data.data;
+						// this.eoscode = res.data.data;
+						//console.log(res.data.data);
+						var imgs = document.getElementsByTagName("img");
+						//console.log(res.data.data.volunteer_level);
+					});
+			},
+
+			checkLogin() {
+				if(!sessionStorage.getItem("user")) {
+					this.$message({
+						message: "请先登录！",
+						error: "info"
+					});
+					this.$router.push("/login");
+					return false;
+				} else {
+					return true;
+				}
+			},
+			checkLook() {
+				// if (!sessionStorage.getItem("user")) {
+				//   // this.$message({
+				//   //   message: "请先登录！",
+				//   //   error: "info"
+				//   // });
+				//   this.$router.push("/login");
+				//   return false;
+				// } else {
+				//   this.dialogVisible = true;
+				// }
+				if(!sessionStorage.getItem("user")) {
+					this.orShowcode = false;
+					this.orShowcode1 = true;
+				} else {
+					this.orShowcode1 = false;
+					this.orShowcode = true;
+				}
+			},
+			lookVisitLink() {
+				this.dialogVisible = true;
+			},
+			goLogin() {
+				this.$router.push("/login");
+			},
+			routerPush(url) {
+				if(this.checkLogin()) {
+					if(url == "/hongguChange") {
+						// this.$router.push({
+						//   path: url,
+						//   query: { hongguyijiesuo: this.info.hongguyijiesuo }
+						// });
+						this.$message.warning("该功能暂未开放，暂不允许兑换！");
+					} else if(url == "/hongguSend") {
+						this.$router.push({
+							path: url,
+							query: {
+								orVolunteers: this.info.is_zhiyuanzhe,
+								volunteersLevel: this.volunteer_level
+							}
+						});
+					} else {
+						this.$router.push(url);
+					}
+				}
+			},
+			getChicang() {
+				this.$axios
+					.get("user/chicang", {
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							sessionStorage.removeItem("user");
+							sessionStorage.removeItem("token");
+							return;
+						}
+						if(res.data.sta == 1) {
+							this.chicangList = res.data.data;
+						}
+					});
+			},
+			goDiya(val) {
+				if(val.type == 2) {
+					this.$router.push({
+						path: "/companyApply",
+						query: {
+							detail: JSON.stringify(val)
+						}
+					});
+				} else {
+					this.$router.push({
+						path: "/personApply",
+						query: {
+							detail: JSON.stringify(val)
+						}
+					});
+				}
+			},
+			copyVisiteCode(val) {
+				if(this.info.is_zhiyuanzhe == 2 && val == 3) {
+					this.$message.error("请先申请志愿者，通过后才可复制！");
+					return;
+				}
+				if(!this.checkLogin()) {
+					return false;
+				}
+				if(val == 1) {
+					var clipboard = new Clipboard(".copy1");
+				} else if(val == 2) {
+					var clipboard = new Clipboard(".copy2");
+				} else {
+					var clipboard = new Clipboard(".copy3");
+				}
+				var that = this;
+				clipboard.on("success", function(e) {
+					that.$message({
+						message: "复制成功！",
+						type: "success"
+					});
+					e.clearSelection();
+					clipboard.on("error", function(e) {
+						that.$message.error("复制失败！");
+					});
+				});
+			},
+			recordCurrentChange(page) {
+				this.page1 = page;
+				this.getAwardList();
+			},
+			collegeCurrentChange(page) {
+				this.page2 = page;
+				this.getNewsList();
+			},
+			handleCurrentChange(page) {
+				this.page3 = page;
+				// this.getDoneDiya()
+				this.getVipCard();
+			},
+			getNewsList() {
+				this.$axios
+					.get("index/jiangli", {
+						page: this.page2,
+						limit: 4
+					})
+					.then(res => {
+						if(res.data.data) {
+							this.newsList = res.data.data;
+						}
+						this.collegeTotal = res.data.total;
+					});
+			},
+			getAwardList() {
+				this.$axios
+					.get("user/jianglijilu", {
+						p: this.page1,
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							sessionStorage.removeItem("user");
+							sessionStorage.removeItem("token");
+							return;
+						}
+						if(res.data.data) {
+							this.awardList = res.data.data.list;
+							this.recordTotal = res.data.data.totalPage;
+						}
+					});
+			},
+			getNums() {
+				this.$axios
+					.get("user/getnum", {
+						type: 1,
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							sessionStorage.removeItem("user");
+							sessionStorage.removeItem("token");
+							return;
+						}
+						if(res.data) {
+							this.num1 = res.data.data1;
+							this.num2 = res.data.data5;
+							this.num3 = res.data.data6;
+							this.num4 = res.data.data4;
+							this.num5 = res.data.data2;
+							this.num6 = res.data.data3;
+						}
+					});
+			},
+			getDiya() {
+				this.$axios
+					.get("user/huodonglist", {
+						p: this.page2,
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							sessionStorage.removeItem("user");
+							sessionStorage.removeItem("token");
+							return;
+						}
+						if(res.data.data) {
+							if(res.data.data.list && res.data.data.list.length != 0) {
+								this.personList = res.data.data.list.filter(
+									item => item.type == 1
+								);
+								this.companyList = res.data.data.list.filter(
+									item => item.type == 2
+								);
+							}
+						}
+					});
+			},
+			getDoneDiya() {
+				this.$axios
+					.get("user/myhuodong", {
+						p: this.page3,
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							sessionStorage.removeItem("user");
+							sessionStorage.removeItem("token");
+							return;
+						}
+						if(res.data) {
+							this.doneHuodong = res.data.list;
+							this.total3 = res.data.totalPage;
+						}
+					});
+			},
+			getVipCard() {
+				this.$axios
+					.get("card/getCardList", {
+						page: this.page3,
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							sessionStorage.removeItem("user");
+							sessionStorage.removeItem("token");
+							return;
+						}
+						if(res.data) {
+							this.doneHuodong = res.data.data.data;
+							this.total3 = res.data.data.total;
+							this.diyaTotal = res.data.znum;
+							this.total4 = res.data.jnum;
+						}
+					});
+			},
+			getCardList() {
+				this.$axios.get("card/showCardList").then(res => {
+					if(res.data) {
+						this.cardList = res.data.data;
+					}
+				});
+			},
+			getVipDetail(val) {
+				//console.log(val, 'aa')
+				this.cardDetail = val;
+				this.drawer = true;
+			},
+			friendHonggu() {
+				if(!this.checkLogin()) {
+					return false;
+				} else {
+					this.$router.push("/applyhgList");
+				}
+				// this.$axios
+				//   .post("user/apply_bonus_shares", {
+				//     token: sessionStorage.getItem("token")
+				//   })
+				//   .then(res => {
+				//     if (res.data.sta == 401) {
+				//       this.$message.error("请重新登录！");
+				//       this.$router.push("/login");
+				//     }
+				//     if (res.data.sta == 1) {
+				//       this.$message({
+				//         message: "申请成功！",
+				//         type: "success"
+				//       });
+				//     } else {
+				//       this.$message({
+				//         message: res.data.msg,
+				//         type: "error"
+				//       });
+				//     }
+				//   });
+			},
+			qiandao() {
+				this.$axios
+					.post("user/qiandao", {
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							this.$message.error("请重新登录！");
+							this.$router.push("/login");
+							//							this.info.qiandaoStatus = 2;
+						}
+						if(res.data.sta == 1) {
+							this.info.qiandaoStatus = 1;
+							this.$message({
+								message: "签到成功！",
+								type: "success"
+							});
+						} else {
+							this.$message({
+								message: res.data.msg,
+								type: "error"
+							});
+							//							this.info.qiandaoStatus = 2;
+						}
+					});
+			},
+			applyOver(id) {
+				this.$axios
+					.post("huodong/stop", {
+						token: sessionStorage.getItem("token"),
+						huodongid: id
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							this.$message.error("请重新登录！");
+							this.$router.push("/login");
+						}
+						if(res.data.sta == 1) {
+							this.$message({
+								message: "申请成功！",
+								type: "success"
+							});
+						} else {
+							this.$message({
+								message: res.data.msg,
+								type: "error"
+							});
+						}
+					});
+			},
+			checkDateline() {
+				//				alert('a')
+				var that = this;
+				this.$axios
+					.post("card/expirecards", {
+						token: sessionStorage.getItem("token")
+					})
+					.then(res => {
+						if(res.data.sta == 401) {
+							this.$message.error("请重新登录！");
+							this.$router.push("/login");
+						}
+						var deallineCardtotal = 0;
+						//												var obj = {
+						//													"一":{
+						//														name:'',
+						//														num:'4'
+						//													},
+						//													"二":{
+						//														name:'',
+						//														num:'2'
+						//													},
+						//													"三":{
+						//														name:'',
+						//														num:'0'
+						//													}
+						//												}
+						//						console.log()
+						for(var j in res.data.data) {
+							deallineCardtotal =
+								deallineCardtotal + Number(res.data.data[j].num);
+							//							console.log(deallineCardtotal, 'deallineCardtotal')
+							//							if(deallineCardtotal < 1) {
+							//								//没有会员卡到期
+							//								that.orContinusZhezhao = false;
+							//								that.moreCard = false;
+							//								that.oneCard = false;
+							//							} else {
+							//								that.orContinusZhezhao = true;
+							//								if(res.data.data[j].num > 1) {
+							//									//有多张会员卡到期
+							//									that.orContinusZhezhao = true;
+							//									that.moreCard = true;
+							//									that.oneCard = false;
+							//									that.deallineday = j;
+							//									that.deallinecardNum = res.data.data[j].num;
+							//									//									console.log(j, res.data.data[j].num)
+							//									that.deallineNum = res.data.data[j].num;
+							//									break;
+							//								} else {
+							//									//只有一张会员卡到期
+							//									that.orContinusZhezhao = true;
+							//									that.moreCard = false;
+							//									that.oneCard = true;
+							//									that.cardType = res.data.data[j].name;
+							//									that.deallineday = res.data.data[j].num;
+							//									that.cardId = res.data.data[j].id
+							//									//									console.log(res.data.data[j].name, res.data.data[j].num)
+							//									break;
+							//								}
+							//							}
+						}
+						console.log(deallineCardtotal, 'deallineCardtotal')
+						for(var j in res.data.data) {
+							if(deallineCardtotal < 1) {
+								//没有会员卡到期
+								that.orContinusZhezhao = false;
+								that.moreCard = false;
+								that.oneCard = false;
+							} else {
+								that.orContinusZhezhao = true;
+								if(deallineCardtotal > 1) {
+									//有多张会员卡到期
+									that.orContinusZhezhao = true;
+									that.moreCard = true;
+									that.oneCard = false;
+									that.deallineday = j;
+									that.deallinecardNum = res.data.data[j].num;
+																		console.log(j, res.data.data[j].num)
+									that.deallineNum = res.data.data[j].num;
+//									console.log('222')
+//									break;
+								} else {
+									//只有一张会员卡到期
+									that.orContinusZhezhao = true;
+									that.moreCard = false;
+									that.oneCard = true;
+									that.cardType = res.data.data[j].name;
+									that.deallineday = res.data.data[j].num;
+									that.cardId = res.data.data[j].id
+									//									console.log(res.data.data[j].name, res.data.data[j].num)
+//										console.log('3333')
+									break;
+								}
+							}
+						}
+
+					});
+			}
+		}
+	};
+</script>
+<style lang="scss" scoped>
+	.tiyanCard {
+		width: 300px;
+		height: 200px;
+		line-height: 200px;
+		background: url("../assets/images/tiyanCard.png") no-repeat center center;
+		background-size: 100% 100%;
+		span {
+			width: 100%;
+			text-align: center;
+			font-size: 28px;
+			color: #fff;
+			font-family: "PingFang SC";
+			font-weight: bolder;
+		}
+	}
+	
+	.zhezhao {
+		/*width: 100%;
+		height: 100%;
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;*/
+		/*background-color: rgba(0, 0, 0, 0.5);*/
+		.popup {
+			position: absolute;
+			right: 0;
+			bottom: 0;
+			width: 360px;
+			border: 1px solid #eee;
+			transform: translateX(-27px) translateY(-5%);
+			.cancle {
+				position: absolute;
+				top: -8px;
+				right: -8px;
+				display: inline-block;
+				width: 22px;
+				height: 23px;
+				border-radius: 50%;
+				background: #f2f2f2;
+				text-align: center;
+				color: #c3c3c3;
+				cursor: pointer;
+			}
+			.or_continus_title {
+				width: 100%;
+				/*height: 40px;
+				line-height: 40px;*/
+				text-align: center;
+				padding: 20px 30px 40px 30px;
+				box-sizing: border-box;
+				background: #ffb802;
+				span {
+					color: #fff;
+				}
+			}
+			.continus_opt {
+				width: 100%;
+				background: #fff;
+				height: 100px;
+				padding: 30px 30px 0 30px;
+				box-sizing: border-box;
+				.look_detail {
+					display: inline-block;
+					background: #ffb802;
+					color: #fff;
+					width: 100px;
+					height: 40px;
+					line-height: 40px;
+					text-align: center;
+					border-radius: 8px;
+					cursor: pointer;
+				}
+				.continus_have {
+					display: inline-block;
+					float: right;
+					background: #f2f2f2;
+					color: #000000;
+					width: 100px;
+					height: 40px;
+					line-height: 40px;
+					text-align: center;
+					border-radius: 8px;
+					cursor: pointer;
+				}
+			}
+		}
+	}
+	
+	.center {
+		padding-top: 56px;
+		max-width: 1260px;
+		margin: 0 auto;
+		.left {
+			margin: 20px 0;
+			.info {
+				padding: 20px;
+				border-radius: 3px;
+				box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.16);
+				.info-left {
+					// margin-top: 20px;
+					padding-left: 35px;
+					box-sizing: border-box;
+					text-align: center;
+					.userID {
+						font-size: 16px;
+						font-weight: 700;
+						color: #606266;
+						margin: 10px 0 5px 0;
+					}
+					.kyc {
+						position: relative;
+						cursor: pointer;
+						span {
+							position: absolute;
+							width: 30px;
+							left: 7px;
+							top: -1px;
+							font-size: 10px;
+							color: #fefffe;
+							line-height: 12px;
+						}
+					}
+				}
+				.info-right {
+					// margin-top: 20px;
+					// p {
+					//     font-size: 12px;
+					//     color: #606266;
+					// }
+					// h5 {
+					//     font-size: 36px;
+					//     color: #f07e1b;
+					// }
+					.regist_phone {
+						padding-left: 35px;
+						box-sizing: border-box;
+					}
+					.button_volunteer {
+						margin: 10px 15px 0 0;
+					}
+					.button_volunteer,
+					.apply_honggu {
+						width: 210px;
+						float: right;
+					}
+					.modify_sign {
+						float: right;
+						margin: 0 15px 0 0;
+					}
+					.apply_honggu {
+						margin: 10px 15px 15px 0;
+					}
+					.zhiyuan {
+						margin: 15px 15px 15px 0;
+					}
+				}
+			}
+			.honggu1 {
+				overflow: hidden;
+				margin-top: 20px;
+				padding: 20px 20px 20px;
+				border-radius: 3px;
+				box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.16);
+				.left {
+					float: left;
+					text-align: center;
+					border-right: 1px solid #dcdfe6;
+					padding: 0 20px 0 0;
+					box-sizing: border-box;
+					p {
+						&:last-of-type {
+							font-size: 16px;
+							font-weight: bolder;
+							color: #f07e1b;
+							margin: 5px 0 5px 0;
+						}
+					}
+					.user_eos {
+						// width: 80px;
+						padding: 10px 13px 0 10px;
+						box-sizing: border-box;
+						display: inline-block;
+						color: #606266;
+					}
+				}
+				.middle1 {
+					margin: 20px;
+					float: left;
+					text-align: center;
+					border-right: 1px solid #dcdfe6;
+					padding: 0 22px 0 0;
+					box-sizing: border-box;
+					p {
+						&:last-of-type {
+							font-size: 16px;
+							font-weight: bolder;
+							color: #f07e1b;
+							margin: 5px 0 5px 0;
+						}
+					}
+					// .btn1 {
+					//     display: block;
+					// }
+					// .btn2 {
+					//     display: block;
+					//     margin-left: 0;
+					//     margin-top: 10px;
+					// }
+				}
+				.right {
+					float: left;
+					text-align: center;
+					p {
+						&:last-of-type {
+							font-size: 16px;
+							font-weight: bolder;
+							color: #f07e1b;
+							margin: 5px 0 5px 0;
+						}
+					}
+				}
+				.hg_bottom {
+					float: right;
+					margin-right: 15px;
+					margin-top: 10px;
+					a {
+						color: #aaa;
+						font-size: 12px;
+						font-weight: 500;
+					}
+				}
+				.btn2 {
+					float: right;
+				}
+			}
+			.invite {
+				margin-top: 20px;
+				padding: 30px 20px 20px;
+				border-radius: 3px;
+				box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.16);
+				.myfriend {
+					padding-bottom: 10px;
+					font-size: 16px;
+					font-weight: 500;
+					font-weight: bolder;
+					color: "#333";
+					border-bottom: 1px solid #ddd;
+					a {
+						font-size: 18px;
+						float: right;
+						font-size: 12px;
+						line-height: 18px;
+						font-weight: 500;
+						color: #aaa;
+					}
+				}
+				.friend {
+					text-align: center;
+					border-right: 1px solid #ddd;
+					&:last-of-type {
+						border-right: none;
+					}
+					&:first-of-type {
+						span {
+							&:last-of-type {
+								color: #f07e1b;
+							}
+						}
+					}
+					span {
+						display: block;
+						&:first-of-type {
+							color: #999;
+							font-size: 12px;
+						}
+						&:last-of-type {
+							color: #606266;
+							font-size: 15px;
+							margin-top: 10px;
+							font-weight: 700;
+						}
+					}
+				}
+				.invite-code {
+					margin-top: 10px;
+				}
+			}
+			.award-record {
+				padding: 20px 0;
+				margin-top: 20px;
+				border-radius: 3px;
+				box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.16);
+				h5 {
+					padding-left: 20px;
+					font-size: 16px;
+					color: #333;
+				}
+				.award-title {
+					text-align: center;
+					font-size: 14px;
+					color: #999;
+					margin-top: 25px;
+					padding-bottom: 15px;
+					border-bottom: 1px solid #ddd;
+				}
+				.award-item {
+					margin-top: 15px;
+					font-size: 14px;
+					color: #5d6b6e;
+					text-align: center;
+				}
+				.block {
+					margin: 20px 20px 0 0;
+					text-align: right;
+				}
+				.moreDeal {
+					float: right;
+					margin-right: 30px;
+					color: #aaa;
+					font-size: 12px;
+					font-weight: 500;
+					margin-top: 10px;
+					cursor: pointer;
+				}
+			}
+			.award-news {
+				padding: 20px;
+				margin-top: 20px;
+				border-radius: 3px;
+				box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.16);
+				h5 {
+					font-size: 16px;
+					color: #333;
+				}
+				.news-item {
+					margin: 20px 0 10px;
+					p {
+						font-size: 14px;
+						color: #909399;
+						line-height: 30px;
+						cursor: pointer;
+					}
+				}
+				.block {
+					text-align: right;
+				}
+			}
+			.rules {
+				padding: 20px;
+				margin-top: 20px;
+				border-radius: 3px;
+				box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.16);
+				h5 {
+					font-size: 16px;
+					color: #333;
+				}
+				.item {
+					margin-top: 20px;
+				}
+			}
+		}
+		.right {
+			margin: 20px 0;
+			.bledge-container {
+				padding: 20px 0;
+				box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.16);
+				border-radius: 3px;
+				h4 {
+					padding: 0 0 20px 20px;
+					font-size: 16px;
+					color: #333;
+					border-bottom: 1px solid #e4e7ed;
+				}
+				.pledge {
+					padding: 20px;
+					.pledge-top {
+						h5 {
+							margin: 20px 0;
+							font-size: 16px;
+							color: #333;
+							&:first-of-type {
+								margin-bottom: 0;
+							}
+						}
+						.all-pledge {
+							p {
+								font-size: 12px;
+								color: #606266;
+							}
+							span {
+								font-size: 36px;
+								color: #f07e1b;
+								font-weight: 700;
+							}
+						}
+						.two-btn {
+							float: right;
+						}
+					}
+					.pledge-item {
+						padding: 20px 15px;
+						margin-top: 20px;
+						border: 1px solid #e4e7ed;
+						border-radius: 5px;
+						h5 {
+							margin: 0;
+							padding-left: 5px;
+							font-size: 16px;
+							color: #333;
+							border-left: 3px solid #f07e1b;
+						}
+						.bledge-content {
+							margin-top: 20px;
+							.item-left {
+								margin-top: 20px;
+								.fang {
+									margin: 0 auto;
+									width: 80%;
+									height: 94px;
+									border: 1px solid #f5dab1;
+									border-radius: 4px;
+									background: #fdf6ec;
+									p {
+										line-height: 34px;
+										font-size: 16px;
+										color: #f07e1b;
+										text-align: center;
+										border-bottom: 1px solid #f5dab1;
+									}
+									span {
+										display: block;
+										line-height: 60px;
+										font-size: 36px;
+										color: #f07e1b;
+										text-align: center;
+										font-weight: 700;
+									}
+								}
+								.time {
+									margin-top: 10px;
+									font-size: 12px;
+									color: #909399;
+									text-align: center;
+								}
+							}
+							.item-right {
+								.right-row {
+									line-height: 26px;
+									font-size: 14px;
+									color: #5d6b6e;
+								}
+							}
+						}
+					}
+					.block {
+						margin-top: 20px;
+						text-align: right;
+					}
+					.vipList {
+						overflow: hidden;
+						img {
+							float: left;
+							margin: 10px 20px 10px 0;
+						}
+					}
+					.vipKinds {
+						margin: 20px 0;
+						img {
+							width: 200px;
+							height: 120px;
+							cursor: pointer;
+						}
+					}
+				}
+			}
+		}
+		.el-avatar {
+			img {
+				cursor: pointer;
+			}
+		}
+		@media screen and (max-width: 600px) {
+			.honggu1 {
+				padding: 20px 7px 19px !important;
+			}
+			.honggu1_flex {
+				display: flex;
+			}
+			.left {
+				padding-right: 8px !important;
+				// padding: 0 8px 0 0 !important;
+				p {
+					font-size: 12px;
+				}
+			}
+			.middle1 {
+				margin: 15px !important;
+				padding: 0 10px 0 0 !important;
+				p {
+					font-size: 12px;
+				}
+			}
+			.right {
+				p {
+					font-size: 12px;
+				}
+			}
+			.honggzz {
+				margin-top: 5px;
+			}
+			.regist_phone {
+				margin: 10px 0 10px 18px !important;
+			}
+			.el-button+.el-button {
+				margin: 10px 0 10px 0 !important;
+			}
+			.button_volunteer,
+			.apply_honggu,
+			.modify_sign {
+				margin: 10px 35px 0 -37px !important;
+			}
+			.row {
+				margin-right: 0;
+				margin-left: 0;
+			}
+			// .modify_sign {
+			//   margin: 9 66px 0 0 !important;
+			// }
+		}
+	}
+</style>

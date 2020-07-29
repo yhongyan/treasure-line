@@ -1,0 +1,208 @@
+<template>
+	<div class="notice-list">
+		<div class="nav-top clear">
+			<el-button type="primary" plain size="small" icon="el-icon-back" style="float: left;" @click="$router.go(-1)">返回</el-button>
+			<p>当前位置：
+				<router-link to="/personCenter">个人中心</router-link> >
+				<router-link to="">已解锁红股列表</router-link>
+			</p>
+		</div>
+		<h3>已解锁红股列表</h3>
+		<!--<div class="list">-->
+			<el-tabs v-model="activeName" type="border-card" @tab-click="handleClick">
+				<el-tab-pane label="助力解锁" name="first">
+					<div class="change-list">
+						<el-table :data="changeList" height="250" border style="width: 100%">
+							<el-table-column prop="ctime" label="助力时间" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="other_id" label="助力ID" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="card_level" label="会员卡等级" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="source" label="解锁来源" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="ratio" label="比例" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="bonus_num" label="助力数量" width="180" align='center'>
+							</el-table-column>
+						</el-table>
+					</div>
+					<div class="block">
+						<el-pagination @current-change="handleCurrentChange" :current-page="page" layout="total, prev, pager, next, jumper" :total="total">
+						</el-pagination>
+					</div>
+				</el-tab-pane>
+				<el-tab-pane label="自解锁" name="second">
+					<div class="change-list">
+						<el-table :data="zijiesuoList" height="250" border style="width: 100%">
+							<el-table-column prop="num" label="减少红股数量" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="reason" label="原因" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="ratio" label="解锁比例‰" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="original_num" label="原来数量" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="new_num" label="变化后的数量" width="180" align='center'>
+							</el-table-column>
+							<el-table-column prop="createtime" label="时间" width="180" align='center'>
+							</el-table-column>
+						</el-table>
+					</div>
+					<div class="block">
+						<el-pagination @current-change="handleCurrentChange1" :current-page="page1" layout="total, prev, pager, next, jumper" :total="total1">
+						</el-pagination>
+					</div>
+				</el-tab-pane>
+			</el-tabs>
+
+		<!--</div>-->
+	</div>
+</template>
+
+<script>
+	export default {
+		name: "notice-list",
+		data() {
+			return {
+				activeName: 'first',
+				page: 1,
+				size: 10,
+				total: 0,
+				page1: 1,
+//				size: 10,
+				total1: 0,
+				changeList: [],
+				zijiesuoList:[]
+			}
+		},
+		mounted() {
+			this.getList()
+			this.getSelfjiesuo()
+		},
+		methods: {
+			handleClick(tab, event) {
+//				console.log(tab, event);
+			},
+			handleSizeChange(size) {
+				this.size = size;
+			},
+			handleCurrentChange(page) {
+				this.page = page;
+				this.getList()
+			},
+			handleSizeChange1(size) {
+				this.size = size;
+			},
+			handleCurrentChange1(page) {
+				this.page1 = page1;
+				this.getSelfjiesuo()
+			},
+			getList() {
+				this.$axios.get('help/getRecord', {
+					page: this.page,
+					token: sessionStorage.getItem('token')
+				}).then(res => {
+					if(res.data.sta == 401) {
+						this.$message.error("请重新登录！");
+						this.$router.push('/login')
+					}
+					if(res.data.data) {
+						for(let i = 0; i < res.data.data.data.length; i++) {
+							res.data.data.data[i].bonus_num = parseFloat(res.data.data.data[i].bonus_num).toFixed(2)
+						}
+						this.changeList = res.data.data.data;
+						this.total = res.data.data.total;
+					}
+				})
+			},
+			getSelfjiesuo() {
+				this.$axios.get('selflock/getRecord', {
+//					page: this.page,
+					token: sessionStorage.getItem('token')
+				}).then(res => {
+					if(res.data.sta == 401) {
+						this.$message.error("请重新登录！");
+						this.$router.push('/login')
+					}
+					console.log(res,'zijisuo')
+					if(res.data.data) {
+						for(let i = 0; i < res.data.data.data.length; i++) {
+							res.data.data.data[i].num = parseFloat(res.data.data.data[i].num).toFixed(2)
+								res.data.data.data[i].new_num = parseFloat(res.data.data.data[i].new_num).toFixed(2)
+								res.data.data.data[i].ratio = parseFloat(res.data.data.data[i].ratio).toFixed(2)+'‰'
+								
+						}
+						this.zijiesuoList = res.data.data.data;
+						this.total1 = res.data.data.total;
+					}
+				})
+			},
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.notice-list {
+		margin: 75px auto 20px;
+		max-width: 960px;
+		.nav-top {
+			p {
+				float: right;
+				font-size: 14px;
+				a {
+					color: #409eff;
+				}
+			}
+		}
+		h3 {
+			font-size: 30px;
+			color: #303133;
+			text-align: center;
+			margin: 20px 0;
+		}
+		.list {
+			padding: 20px 0 20px;
+			box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.16);
+			border-radius: 3px;
+			.list-title {
+				padding: 0 20px 10px;
+				border-bottom: 1px solid #ddd;
+				h4 {
+					margin: 0;
+					font-size: 16px;
+				}
+				p {
+					font-size: 12px;
+				}
+			}
+			.change-list {
+				padding: 10px 20px;
+				word-wrap: break-word;
+				.item-title {
+					line-height: 40px;
+					margin: 10px 0 0 0;
+					text-align: center;
+					color: #999;
+					font-size: 12px;
+				}
+				.list-item {
+					font-size: 12px;
+					color: #5d6b6e;
+					text-align: center;
+					// margin: 8px 0;
+					line-height: 40px;
+					border-top: 1px solid #DCDFE6;
+					.number {
+						color: #f1a90a;
+						cursor: pointer;
+					}
+				}
+			}
+			.block {
+				text-align: center;
+				margin-top: 10px;
+			}
+		}
+	}
+</style>
